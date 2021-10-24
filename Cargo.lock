@@ -1743,7 +1743,6 @@ dependencies = [
  "bincode",
  "bitcoin",
  "bitcoincore-rpc",
- "futures",
  "hex",
  "itertools",
  "minimint-api",
