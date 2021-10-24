@@ -22,7 +22,7 @@ rand = "0.6.5"
 rayon = "1.5.0"
 secp256k1-zkp = { git = "https://github.com/elsirion/rust-secp256k1-zkp", branch = "minimint", features = [ "global-context", "bitcoin_hashes" ] }
 serde = { version = "1", features = [ "derive" ] }
-serde_json = "1.0.61"
+serde_json = "1"
 sha3 = "0.9.1"
 sled = "0.34"
 structopt = "0.3"
