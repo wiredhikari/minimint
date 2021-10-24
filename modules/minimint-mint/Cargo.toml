@@ -17,7 +17,7 @@ rayon = "1.5.0"
 serde = { version = "1.0.118", features = [ "derive" ] }
 tbs = { path = "../../crypto/tbs" }
 thiserror = "1.0.23"
-tracing ="0.1.22"
+tracing ="0.1"
 
 [dev-dependencies]
 rand = "0.6.5"

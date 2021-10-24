@@ -21,7 +21,7 @@ sha3 = "0.9.1"
 sled = "0.34"
 tbs = { path = "../crypto/tbs"}
 thiserror = "1.0.23"
-tracing ="0.1.22"
+tracing ="0.1"
 validator = { version = "0.13", features = ["derive"] }
 
 [dev-dependencies]
