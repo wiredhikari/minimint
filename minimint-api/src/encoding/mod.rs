@@ -3,6 +3,7 @@
 //! be migrated to this interface.
 
 mod btc;
+mod hashes;
 mod secp256k1;
 mod tbs;
 
