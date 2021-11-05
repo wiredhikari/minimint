@@ -64,12 +64,25 @@ impl RawDatabase for sled::Tree {
                     BatchItem::MaybeDeleteElement(key) => {
                         t.remove(key.to_bytes())?;
                     }
+                    BatchItem::MaybeUpdate(update) => {
+                        let key = update.key.to_bytes();
+                        let maybe_val = self.get(&key)?;
+                        let maybe_val_ref = maybe_val.as_ref().map(|v| v.as_ref());
+                        let maybe_new_val = (update.updater)(&key, maybe_val_ref)?;
+
+                        if let Some(new_val) = maybe_new_val {
+                            self.insert(&key, new_val)?;
+                        }
+                    }
                 }
             }
 
             Ok(())
         })
-        .map_err(|e: TransactionError| DatabaseError::DbError(Box::new(e)))
+        .map_err(|e: TransactionError<DecodingError>| match e {
+            TransactionError::Abort(e) => DatabaseError::DecodingError(e),
+            TransactionError::Storage(e) => DatabaseError::DbError(Box::new(e)),
+        })
     }
 }
 

@@ -77,6 +77,16 @@ impl RawDatabase for MemDatabase {
                 BatchItem::MaybeDeleteElement(key) => {
                     self.raw_remove_entry(&key.to_bytes())?;
                 }
+                BatchItem::MaybeUpdate(update) => {
+                    let key = update.key.to_bytes();
+                    let maybe_val = self.raw_get_value(&key)?;
+                    let maybe_val_ref = maybe_val.as_ref().map(|v| v.as_ref());
+                    let maybe_new_val = (update.updater)(&key, maybe_val_ref)?;
+
+                    if let Some(new_val) = maybe_new_val {
+                        self.raw_insert_entry(&key, new_val)?;
+                    }
+                }
             }
         }
 

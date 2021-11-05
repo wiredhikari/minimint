@@ -1,4 +1,6 @@
 use super::{DatabaseKeyPrefix, SerializableDatabaseValue};
+use crate::db::{DatabaseKey, DatabaseValue, DecodingError};
+use std::any::Any;
 
 pub type DbBatch = Accumulator<BatchItem>;
 pub type BatchTx<'a> = AccumulatorTx<'a, BatchItem>;
@@ -8,6 +10,14 @@ pub type BatchTx<'a> = AccumulatorTx<'a, BatchItem>;
 pub struct Element {
     pub key: Box<dyn DatabaseKeyPrefix + Send>,
     pub value: Box<dyn SerializableDatabaseValue + Send>,
+}
+
+pub type UpdateFunction =
+    Box<dyn Fn(&[u8], Option<&[u8]>) -> Result<Option<Vec<u8>>, DecodingError> + Send>;
+
+pub struct Update {
+    pub key: Box<dyn DatabaseKeyPrefix + Send>,
+    pub updater: UpdateFunction,
 }
 
 #[derive(Debug)]
@@ -21,6 +31,11 @@ pub enum BatchItem {
     DeleteElement(Box<dyn DatabaseKeyPrefix + Send>),
     /// Deletes element, does nothing if it doesn't exist
     MaybeDeleteElement(Box<dyn DatabaseKeyPrefix + Send>),
+    /// Tries to update an element.
+    ///
+    /// If it doesn't exist already the update fn may decide if to do nothing or to insert a new
+    /// element.
+    MaybeUpdate(Update),
 }
 
 impl Element {
@@ -184,6 +199,28 @@ impl BatchItem {
     {
         BatchItem::MaybeDeleteElement(Box::new(key))
     }
+
+    /// Construct a DB operation to insert a potentially already existing item
+    pub fn maybe_update<K, V, F>(key: K, update_fn: F) -> Self
+    where
+        K: DatabaseKey + Send + 'static,
+        V: DatabaseValue + Send + 'static,
+        F: Fn(K, Option<V>) -> Option<V> + Send + Sync + 'static,
+    {
+        let dyn_update_fn = Box::new(
+            move |key_bytes: &[u8],
+                  maybe_value_bytes: Option<&[u8]>|
+                  -> Result<Option<Vec<u8>>, DecodingError> {
+                let key = K::from_bytes(key_bytes)?;
+                let maybe_value = maybe_value_bytes.map(V::from_bytes).transpose()?;
+                Ok(update_fn(key, maybe_value).map(|val| val.to_bytes()))
+            },
+        );
+        BatchItem::MaybeUpdate(Update {
+            key: Box::new(key),
+            updater: dyn_update_fn,
+        })
+    }
 }
 
 impl<'a> AccumulatorTx<'a, BatchItem> {
@@ -219,6 +256,22 @@ impl<'a> AccumulatorTx<'a, BatchItem> {
         K: DatabaseKeyPrefix + Send + 'static,
     {
         self.append(BatchItem::maybe_delete(key))
+    }
+
+    /// Append a DB operation to atomically update a potentially absent element (might create or ignore in that case)
+    pub fn append_maybe_update<K, V, F>(&mut self, key: K, update_fn: F)
+    where
+        K: DatabaseKey + Send + 'static,
+        V: DatabaseValue + Send + 'static,
+        F: Fn(K, Option<V>) -> Option<V> + Send + Sync + 'static,
+    {
+        self.append(BatchItem::maybe_update(key, update_fn))
+    }
+}
+
+impl std::fmt::Debug for Update {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Update({:?}, {:?})", self.key, self.updater.type_id())
     }
 }
 
