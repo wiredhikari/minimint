@@ -4,6 +4,7 @@ use bitcoin_hashes::Hash as BitcoinHash;
 use bitcoin_hashes::{borrow_slice_impl, hash_newtype, hex_fmt_impl, index_impl, serde_impl};
 use minimint_api::encoding::{Decodable, DecodeError, Encodable};
 use minimint_api::OutPoint;
+use serde::{Deserialize, Serialize};
 use std::io::Error;
 
 // FIXME: the protocol currently envisions the use of a pub key as preimage. This is bad for privacy
@@ -25,7 +26,7 @@ use std::io::Error;
 ///      with the private key corresponding to the public key which they used as preimage.
 ///   2. The decryption results in an invalid preimage, the gateway can claim back the money. For
 ///      this to work securely they have to specify a public key when creating the actual contract.
-#[derive(Debug, Clone, PartialEq, Eq, Encodable, Decodable)]
+#[derive(Debug, Clone, PartialEq, Eq, Encodable, Decodable, Serialize, Deserialize)]
 pub struct IncomingContractOffer {
     /// Amount for which the user is willing to sell the preimage
     pub amount: minimint_api::Amount,

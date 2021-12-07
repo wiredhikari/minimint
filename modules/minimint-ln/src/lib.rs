@@ -20,9 +20,11 @@ use itertools::Itertools;
 use minimint_api::db::batch::{BatchItem, BatchTx};
 use minimint_api::db::{Database, RawDatabase};
 use minimint_api::encoding::{Decodable, Encodable};
+use minimint_api::module::{ApiEndpoint, JsonSerializable, Params};
 use minimint_api::{Amount, FederationModule, PeerId};
 use minimint_api::{InputMeta, OutPoint};
 use secp256k1::rand::{CryptoRng, RngCore};
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use thiserror::Error;
 use tracing::{debug, error, trace, warn};
@@ -454,6 +456,13 @@ impl FederationModule for LightningModule {
             .get_value(&ContractUpdateKey(out_point))
             .expect("DB error")
     }
+
+    fn additional_api_endpoints(&self) -> Vec<minimint_api::module::ApiEndpoint<Self>> {
+        vec![ApiEndpoint {
+            path: "/offers",
+            responder: Box::new(Self::api_endpoint_offers),
+        }]
+    }
 }
 
 impl LightningModule {
@@ -501,11 +510,15 @@ impl LightningModule {
             .unwrap_or(0)
     }
 
-    pub fn get_offers(&self) -> Vec<IncomingContractOffer> {
+    pub fn get_offers(&self) -> BTreeMap<OfferKey, IncomingContractOffer> {
         self.db
             .find_by_prefix::<_, OfferKey, IncomingContractOffer>(&OfferKeyPrefix)
-            .map(|res| res.expect("DB error").1)
+            .map(|res| res.expect("DB error"))
             .collect()
+    }
+
+    fn api_endpoint_offers(&self, _params: Params) -> JsonSerializable {
+        Box::new(self.get_offers())
     }
 }
 

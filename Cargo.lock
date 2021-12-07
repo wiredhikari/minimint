@@ -892,6 +892,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "erased-serde"
+version = "0.3.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3de9ad4541d99dc22b59134e7ff8dc3d6c988c89ecd7324bf10a8362b07a2afa"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "errno"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1683,6 +1692,7 @@ dependencies = [
  "async-trait",
  "bincode",
  "bitcoin",
+ "erased-serde",
  "futures",
  "hbbft",
  "hex",
@@ -1715,6 +1725,7 @@ dependencies = [
  "async-trait",
  "bitcoin",
  "bitcoin_hashes",
+ "erased-serde",
  "hex",
  "minimint-derive",
  "rand 0.6.5",
@@ -1748,6 +1759,7 @@ dependencies = [
  "lightning-invoice 0.10.0",
  "minimint-api",
  "secp256k1",
+ "serde",
  "thiserror",
  "threshold_crypto",
  "tokio",

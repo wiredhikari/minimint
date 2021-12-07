@@ -1,7 +1,9 @@
 use crate::config::ServerConfig;
 use crate::consensus::FediMintConsensus;
 use crate::transaction::Transaction;
+use minimint_api::module::{ApiEndpoint, JsonSerializable, Responder};
 use minimint_api::TransactionId;
+use rand::rngs::OsRng;
 use std::fmt::Formatter;
 use std::sync::Arc;
 use tide::{Body, Request, Response};
@@ -19,14 +21,35 @@ impl std::fmt::Debug for State {
 }
 
 pub async fn run_server(cfg: ServerConfig, fedimint: Arc<FediMintConsensus<rand::rngs::OsRng>>) {
-    let state = State { fedimint };
+    let state = State {
+        fedimint: fedimint.clone(),
+    };
     let mut server = tide::with_state(state);
     server.at("/transaction").put(submit_transaction);
     server.at("/transaction/:txid").get(fetch_outcome);
+
+    for endpoint in fedimint.additional_api_endpoints() {
+        let ApiEndpoint { path, responder } = endpoint;
+        server.at(&path).get(Box::new(move |req: Request<State>| {
+            endpoint_to_tide(req, responder.clone())
+        }));
+    }
+
     server
         .listen(format!("127.0.0.1:{}", cfg.get_api_port()))
         .await
         .expect("Could not start API server");
+}
+
+async fn endpoint_to_tide(
+    req: Request<State>,
+    responder: Responder<FediMintConsensus<OsRng>>,
+) -> tide::Result {
+    let mint = req.state().fedimint.as_ref();
+    let params = &|key: &str| req.param(key).expect("unknown param");
+
+    let json: JsonSerializable = responder(mint, params);
+    Ok(Body::from_json(&json).expect("Serialization Error").into())
 }
 
 async fn submit_transaction(mut req: Request<State>) -> tide::Result {

@@ -10,6 +10,7 @@ edition = "2018"
 async-trait = "0.1"
 bitcoin = { version = "0.27.0", features = [ "rand", "serde" ] }
 bitcoin_hashes = { version = "0.10", features = ["serde"] }
+erased-serde = "0.3.16"
 hex = "0.4.3"
 minimint-derive = { path = "../minimint-derive" }
 rand = "0.6.0"

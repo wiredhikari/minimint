@@ -10,6 +10,7 @@ use hbbft::honey_badger::Batch;
 use minimint_api::db::batch::{BatchTx, DbBatch};
 use minimint_api::db::{Database, RawDatabase};
 use minimint_api::encoding::{Decodable, Encodable};
+use minimint_api::module::ApiEndpoint;
 use minimint_api::{FederationModule, OutPoint, PeerId, TransactionId};
 use minimint_derive::UnzipConsensus;
 use minimint_mint::{Mint, MintError};
@@ -56,7 +57,7 @@ struct AcceptedTransaction {
 
 impl<R> FediMintConsensus<R>
 where
-    R: RngCore + CryptoRng,
+    R: RngCore + CryptoRng + 'static,
 {
     pub fn submit_transaction(
         &self,
@@ -326,6 +327,34 @@ where
         } else {
             None
         }
+    }
+
+    fn build_api_endpoints<M>(
+        &self,
+        base: &'static str,
+        module_accessor: fn(&FediMintConsensus<R>) -> &M,
+    ) -> impl Iterator<Item = ApiEndpoint<FediMintConsensus<R>>>
+    where
+        M: FederationModule + 'static,
+    {
+        module_accessor(&self)
+            .additional_api_endpoints()
+            .into_iter()
+            .map(move |endpoint| ApiEndpoint {
+                path: format!("{}{}", base, endpoint.path),
+                responder: Box::new(move |consensus: &FediMintConsensus<R>, params| {
+                    (endpoint.responder)(module_accessor(&consensus), params)
+                }),
+            })
+    }
+
+    pub fn additional_api_endpoints(
+        &self,
+    ) -> impl Iterator<Item = ApiEndpoint<FediMintConsensus<R>>> {
+        let wallet_api = self.build_api_endpoints("/wallet", |consensus| &consensus.wallet);
+        let mint_api = self.build_api_endpoints("/mint", |consensus| &consensus.mint);
+
+        wallet_api.chain(mint_api)
     }
 }
 

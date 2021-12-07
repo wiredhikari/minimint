@@ -2,6 +2,7 @@ use crate::contracts::ContractId;
 use minimint_api::db::DatabaseKeyPrefixConst;
 use minimint_api::encoding::{Decodable, Encodable};
 use minimint_api::{OutPoint, PeerId};
+use serde::{Deserialize, Serialize};
 
 const DB_PREFIX_CONTRACT: u8 = 0x40;
 const DB_PREFIX_OFFER: u8 = 0x41;
@@ -33,7 +34,7 @@ impl DatabaseKeyPrefixConst for ContractUpdateKey {
     const DB_PREFIX: u8 = DB_PREFIX_CONTRACT_UPDATE;
 }
 
-#[derive(Debug, Encodable, Decodable)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Encodable, Decodable, Serialize, Deserialize)]
 pub struct OfferKey(pub bitcoin_hashes::sha256::Hash);
 
 impl DatabaseKeyPrefixConst for OfferKey {

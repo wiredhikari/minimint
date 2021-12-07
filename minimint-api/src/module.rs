@@ -4,6 +4,8 @@ use async_trait::async_trait;
 use rand::CryptoRng;
 use secp256k1_zkp::rand::RngCore;
 use secp256k1_zkp::schnorrsig;
+use serde::Serialize;
+use std::sync::Arc;
 
 pub struct InputMeta<'a> {
     pub amount: Amount,
@@ -11,7 +13,7 @@ pub struct InputMeta<'a> {
 }
 
 #[async_trait(?Send)]
-pub trait FederationModule {
+pub trait FederationModule: Sized {
     type Error;
     type TxInput;
     type TxOutput;
@@ -89,4 +91,20 @@ pub trait FederationModule {
     /// needed by the client to access funds or give an estimate of when funds will be available.
     /// Returns `None` if the output is unknown, **NOT** if it is just not ready yet.
     fn output_status(&self, out_point: crate::OutPoint) -> Option<Self::TxOutputOutcome>;
+
+    /// This function allows a module to register additional API endpoints.
+    fn additional_api_endpoints(&self) -> Vec<ApiEndpoint<Self>> {
+        vec![]
+    }
 }
+
+pub struct ApiEndpoint<M> {
+    pub path: String,
+    pub responder: Responder<M>,
+}
+
+pub type Params<'a, 'b> = &'a dyn Fn(&'b str) -> &'b str;
+pub type JsonSerializable = Box<dyn erased_serde::Serialize>;
+
+// TODO: this being an Arc is horrible, I just gave up at some point, leaving optimizing the API stuff for later
+pub type Responder<M> = Arc<(dyn Fn(&M, Params) -> JsonSerializable + Send + Sync)>;
