@@ -12,7 +12,7 @@ let
   };
     rust = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain;
 in
-  with pkgs;
+  with pkgs; mkShell {
    buildInputs = [
       # Rust
       rust
