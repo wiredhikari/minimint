@@ -7,7 +7,6 @@ rustPlatform.buildRustPackage rec {
     repo = minimint;
   };
 
-  cargoSha256 = "";
 
   meta = with lib; {
     description = "Federated Mint Prototype,This is an experimental implementation of a federated Chaumian bank. ";

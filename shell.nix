@@ -1,23 +1,24 @@
-{ nixpkgs ? import <nixpkgs> { }}:
-let
-  rustOverlay = builtins.fetchTarball "https://github.com/fedimint/minimint/archive/master.tar.gz";
-  pinnedPkgs = nixpkgs.fetchFromGitHub {
-    owner  = "fedimint";
-    repo   = "minimint";
-    rev    = "";
-    sha256 = "";
-  };
-    pkgs = import pinnedPkgs {
-    overlays = [ (import rustOverlay) ];
-  };
-    rust = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain;
-in
-  with pkgs; mkShell {
-   buildInputs = [
-      # Rust
-      rust
-      rust-analyzer
-      ];
-   RUST_BACKTRACE = 1;
-}
+{ pkgs ? import <nixpkgs> {
+    overlays = [
+(import "${(fetchTarball "https://github.com/nix-community/fenix/archive/main.tar.gz")}/overlay.nix")
+      (self: super: {
+          rustc = super.fenix.latest.rustc;
+          cargo  = super.fenix.latest.cargo;
+          rust-src = super.fenix.latest.rust-src;
+      }
+        )
+    ];
+  }
+}:
 
+pkgs.mkShell {
+  packages = with pkgs; [
+    rustc
+    cargo
+    rust-analyzer
+  ];
+
+
+
+  RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
+}
