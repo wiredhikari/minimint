@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::convert::TryInto;
 use std::hash::Hasher;
 use std::sync::Arc;
 
@@ -88,14 +90,11 @@ pub struct Wallet {
 
 #[derive(Clone, Debug, Serialize, Deserialize, Encodable, Decodable)]
 pub struct SpendableUTXO {
-    pub tweak: secp256k1::schnorrsig::PublicKey,
+    pub tweak: [u8; 32],
     #[serde(with = "bitcoin::util::amount::serde::as_sat")]
     pub amount: bitcoin::Amount,
-    // FIXME: why do we save the script pub key? We can derive it from the tweak and the descriptor
-    pub script_pubkey: Script,
 }
 
-// TODO: move pegout logic out of wallet into minimint consensus
 #[derive(Clone, Debug, Serialize, Deserialize, Encodable, Decodable)]
 pub struct PendingPegOut {
     destination: Script,
@@ -280,9 +279,8 @@ impl FederationModule for Wallet {
         batch.append_insert_new(
             UTXOKey(input.outpoint()),
             SpendableUTXO {
-                tweak: *input.tweak_contract_key(),
+                tweak: input.tweak_contract_key().serialize(),
                 amount: bitcoin::Amount::from_sat(input.tx_output().value),
-                script_pubkey: input.tx_output().script_pubkey.clone(),
             },
         );
 
@@ -389,11 +387,22 @@ impl FederationModule for Wallet {
                 })
                 .collect::<Vec<_>>();
 
+            // Delete used UTXOs
+            batch.append_from_iter(
+                psbt.global
+                    .unsigned_tx
+                    .input
+                    .iter()
+                    .map(|input| BatchItem::delete(UTXOKey(input.previous_output))),
+            );
+
+            // Delete pe-outs from pending list
             batch.append_from_iter(
                 peg_out_ids
                     .into_iter()
                     .map(|peg_out| BatchItem::delete(PendingPegOutKey(peg_out))),
             );
+
             batch.append_insert_new(UnsignedTransactionKey(psbt.global.unsigned_tx.txid()), psbt);
             batch.append_insert_new(PegOutTxSignatureCI(txid), sigs);
         }
@@ -534,15 +543,17 @@ impl Wallet {
             // TODO: delete signature item if it's our own
         }
 
-        // FIXME: actually recognize change UTXOs on maturity
         // We need to save the change output's tweak key to be able to access the funds later on.
         // The tweak is extracted here because the psbt is moved next and not available anymore
         // when the tweak is actually needed in the end to be put into the batch on success.
-        let change_tweak = psbt
+        let change_tweak: [u8; 32] = psbt
             .outputs
             .iter()
             .flat_map(|output| output.proprietary.get(&proprietary_tweak_key()).cloned())
-            .next();
+            .next()
+            .ok_or(ProcessPegOutSigError::MissingOrMalformedChangeTweak)?
+            .try_into()
+            .map_err(|_| ProcessPegOutSigError::MissingOrMalformedChangeTweak)?;
 
         match miniscript::psbt::finalize(&mut psbt, &self.secp) {
             Ok(()) => {}
@@ -574,7 +585,7 @@ impl Wallet {
 
         debug!("Finalized peg-out tx: {}", tx.txid());
         trace!("transaction = {:?}", tx);
-        // FIXME: recognize change
+
         // We were able to finalize the transaction, so we will delete the PSBT and instead keep the
         // extracted tx for periodic transmission and to accept the change into our wallet
         // eventually once it confirms.
@@ -669,12 +680,57 @@ impl Wallet {
 
             // TODO: use batching for mainnet syncing
             trace!("Fetching block hash for block {}", height);
-            // TODO: implement retying failed RPC commands till they succeed while loudly complaining to alert the operator
             let block_hash = self.btc_rpc.get_block_hash(height as u64).await; // TODO: use u64 for height everywhere
+
+            let pending_transactions = self
+                .db
+                .find_by_prefix::<_, PendingTransactionKey, PendingTransaction>(
+                    &PendingTransactionPrefixKey,
+                )
+                .map(|res| {
+                    let (key, transaction) = res.expect("DB error");
+                    (key.0, transaction)
+                })
+                .collect::<HashMap<_, _>>();
+
+            if !pending_transactions.is_empty() {
+                let block = self.btc_rpc.get_block(&block_hash).await;
+                for transaction in block.txdata {
+                    if let Some(pending_tx) = pending_transactions.get(&transaction.txid()) {
+                        self.recognize_change_utxo(batch.subtransaction(), pending_tx);
+                    }
+                }
+            }
+
             batch.append_insert_new(
                 BlockHashKey(BlockHash::from_inner(block_hash.into_inner())),
                 (),
             );
+        }
+        batch.commit();
+    }
+
+    /// Add a change UTXO to our spendable UTXO database after it was included in a block that we
+    /// got consensus on.
+    fn recognize_change_utxo(&self, mut batch: BatchTx, pending_tx: &PendingTransaction) {
+        let script_pk = self
+            .cfg
+            .peg_in_descriptor
+            .tweak(&pending_tx.tweak, &self.secp)
+            .script_pubkey();
+        for (idx, output) in pending_tx.tx.output.iter().enumerate() {
+            if output.script_pubkey == script_pk {
+                batch.append_insert(
+                    UTXOKey(bitcoin::OutPoint {
+                        txid: pending_tx.tx.txid(),
+                        vout: idx as u32,
+                    }),
+                    SpendableUTXO {
+                        tweak: pending_tx.tweak,
+                        amount: bitcoin::Amount::from_sat(output.value),
+                    },
+                )
+            }
         }
         batch.commit();
     }
@@ -716,6 +772,15 @@ impl Wallet {
             .find_by_prefix::<_, UTXOKey, SpendableUTXO>(&UTXOPrefixKey)
             .collect::<Result<_, _>>()
             .expect("DB error")
+    }
+
+    pub fn get_wallet_value(&self) -> bitcoin::Amount {
+        let sat_sum = self
+            .available_utxos()
+            .into_iter()
+            .map(|(_, utxo)| utxo.amount.as_sat())
+            .sum();
+        bitcoin::Amount::from_sat(sat_sum)
     }
 
     fn offline_wallet(&self) -> StatelessWallet {
@@ -852,29 +917,35 @@ impl<'a> StatelessWallet<'a> {
             },
             inputs: selected_utxos
                 .into_iter()
-                .map(|(_utxo_key, utxo)| Input {
-                    non_witness_utxo: None,
-                    witness_utxo: Some(TxOut {
-                        value: utxo.amount.as_sat(),
-                        script_pubkey: utxo.script_pubkey,
-                    }),
-                    partial_sigs: Default::default(),
-                    sighash_type: None,
-                    redeem_script: None,
-                    witness_script: Some(
-                        self.descriptor.tweak(&utxo.tweak, self.secp).script_code(),
-                    ),
-                    bip32_derivation: Default::default(),
-                    final_script_sig: None,
-                    final_script_witness: None,
-                    ripemd160_preimages: Default::default(),
-                    sha256_preimages: Default::default(),
-                    hash160_preimages: Default::default(),
-                    hash256_preimages: Default::default(),
-                    proprietary: vec![(proprietary_tweak_key(), utxo.tweak.serialize().to_vec())]
-                        .into_iter()
-                        .collect(),
-                    unknown: Default::default(),
+                .map(|(_utxo_key, utxo)| {
+                    let script_pubkey = self
+                        .descriptor
+                        .tweak(&utxo.tweak, self.secp)
+                        .script_pubkey();
+                    Input {
+                        non_witness_utxo: None,
+                        witness_utxo: Some(TxOut {
+                            value: utxo.amount.as_sat(),
+                            script_pubkey,
+                        }),
+                        partial_sigs: Default::default(),
+                        sighash_type: None,
+                        redeem_script: None,
+                        witness_script: Some(
+                            self.descriptor.tweak(&utxo.tweak, self.secp).script_code(),
+                        ),
+                        bip32_derivation: Default::default(),
+                        final_script_sig: None,
+                        final_script_witness: None,
+                        ripemd160_preimages: Default::default(),
+                        sha256_preimages: Default::default(),
+                        hash160_preimages: Default::default(),
+                        hash256_preimages: Default::default(),
+                        proprietary: vec![(proprietary_tweak_key(), utxo.tweak.to_vec())]
+                            .into_iter()
+                            .collect(),
+                        unknown: Default::default(),
+                    }
                 })
                 .collect(),
             outputs: outputs
@@ -1066,6 +1137,8 @@ pub enum ProcessPegOutSigError {
     InvalidSignature,
     #[error("Duplicate signature")]
     DuplicateSignature,
+    #[error("Missing change tweak")]
+    MissingOrMalformedChangeTweak,
 }
 
 impl From<bitcoincore_rpc::Error> for WalletError {
@@ -1139,7 +1212,7 @@ mod tests {
             pending_since_block: 0,
         }];
 
-        let tweak = secp256k1::schnorrsig::PublicKey::from_slice(&[0x02; 32][..]).unwrap();
+        let tweak = [0x02; 32];
         let tweaked = descriptor.tweak(&tweak, &ctx);
         let utxos = vec![(
             UTXOKey(OutPoint::new(
@@ -1149,7 +1222,6 @@ mod tests {
             SpendableUTXO {
                 tweak,
                 amount: Amount::from_sat(42000),
-                script_pubkey: tweaked.script_pubkey(),
             },
         )];
 
