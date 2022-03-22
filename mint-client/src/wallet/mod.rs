@@ -143,14 +143,12 @@ mod tests {
     use minimint::modules::wallet::bitcoind::test::{FakeBitcoindRpc, FakeBitcoindRpcController};
     use minimint::modules::wallet::config::WalletClientConfig;
     use minimint::modules::wallet::db::UTXOKey;
-    use minimint::modules::wallet::tweakable::Tweakable;
     use minimint::modules::wallet::{SpendableUTXO, Wallet};
     use minimint::outcome::{OutputOutcome, TransactionStatus};
     use minimint::transaction::Transaction;
     use minimint_api::db::mem_impl::MemDatabase;
     use minimint_api::module::testing::FakeFed;
     use minimint_api::{Amount, OutPoint, TransactionId};
-    use miniscript::DescriptorTrait;
     use std::str::FromStr;
     use std::sync::Arc;
     use std::time::Duration;
@@ -232,7 +230,6 @@ mod tests {
 
     #[tokio::test]
     async fn create_output() {
-        let ctx = secp256k1_zkp::Secp256k1::new();
         let (fed, client_context, btc_rpc) = new_mint_and_client().await;
         let client = WalletClient {
             context: client_context.borrow_with_module_config(|x| x),
@@ -247,17 +244,12 @@ mod tests {
         };
 
         // generate fake UTXO
-        let client_cfg = fed.lock().await.client_cfg().clone();
         fed.lock().await.patch_dbs(|db| {
             let out_point = bitcoin::OutPoint::default();
-            let tweak = secp256k1_zkp::schnorrsig::PublicKey::from_slice(&[42; 32][..]).unwrap();
+            let tweak = [42; 32];
             let utxo = SpendableUTXO {
                 tweak,
                 amount: bitcoin::Amount::from_sat(48000),
-                script_pubkey: client_cfg
-                    .peg_in_descriptor
-                    .tweak(&tweak, &ctx)
-                    .script_pubkey(),
             };
 
             db.insert_entry(&UTXOKey(out_point), &utxo).unwrap();
@@ -293,5 +285,22 @@ mod tests {
         // wait for broadcast
         tokio::time::sleep(Duration::from_secs(12)).await;
         assert!(btc_rpc.is_btc_sent_to(amount, addr).await);
+
+        let wallet_value = fed
+            .lock()
+            .await
+            .fetch_from_all(|wallet| wallet.get_wallet_value());
+        assert_eq!(wallet_value, bitcoin::Amount::from_sat(0));
+
+        // test change recognition, wallet should hold some sats
+        btc_rpc.add_pending_tx_to_block(202).await;
+        btc_rpc.set_block_height(301).await;
+        fed.lock().await.consensus_round(&[], &[]).await;
+
+        let wallet_value = fed
+            .lock()
+            .await
+            .fetch_from_all(|wallet| wallet.get_wallet_value());
+        assert!(wallet_value > bitcoin::Amount::from_sat(0));
     }
 }
