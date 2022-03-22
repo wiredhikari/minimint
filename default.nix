@@ -1,17 +1,32 @@
-{ lib, fetchFromGitHub, rustPlatform }:
+{ lib, rustPlatform, fetchFromGitHub}:
 
 rustPlatform.buildRustPackage rec {
-    pname = "minimint";
-    src = fetchFromGitHub {
-    owner = "elsirion";
-    repo = minimint;
+  pname = "minimint";
+  version = "master";
+
+#  cargoLock = {
+#     lockFile = ../Cargo.lock;
+  
+  # };
+
+  checkType = "debug";
+  src = fetchFromGitHub {
+    owner = "fedimint";
+    repo = "minimint";
+    rev = "master";
+    sha256 = "sha256-uoTKfzsm9VkjZPXGoQOCPBzxMTkP8zTSf48eiv5zgAA=";
   };
 
+  cargoSha256 =  "sha256-1lZElXK9M895DURLID2KJdmCkJRTFNVC3meLFluO2WU=";
+
+  buildInputs = [
+    # build
+   ];
 
   meta = with lib; {
-    description = "Federated Mint Prototype,This is an experimental implementation of a federated Chaumian bank. ";
+    description = "Federated Mint Prototype";
     homepage = "https://github.com/fedimint/minimint";
-    license = licenses.MIT;
-    maintainers = [ maintainers.elsirion ];
+    license = licenses.mit;
+    maintainers = with maintainers; [  ];
   };
 }
