@@ -4,11 +4,6 @@ rustPlatform.buildRustPackage rec {
   pname = "minimint";
   version = "master";
 
-#  cargoLock = {
-#     lockFile = ../Cargo.lock;
-  
-  # };
-
   checkType = "debug";
   src = fetchFromGitHub {
     owner = "fedimint";
@@ -18,10 +13,6 @@ rustPlatform.buildRustPackage rec {
   };
 
   cargoSha256 =  "sha256-1lZElXK9M895DURLID2KJdmCkJRTFNVC3meLFluO2WU=";
-
-  buildInputs = [
-    # build
-   ];
 
   meta = with lib; {
     description = "Federated Mint Prototype";
