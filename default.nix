@@ -5,15 +5,12 @@ rustPlatform.buildRustPackage rec {
   version = "master";
 
   checkType = "debug";
-  src = fetchFromGitHub {
-    owner = "fedimint";
-    repo = "minimint";
-    rev = "master";
-    sha256 = "sha256-uoTKfzsm9VkjZPXGoQOCPBzxMTkP8zTSf48eiv5zgAA=";
+  src = builtins.fetchGit {
+  url = "https://github.com/fedimint/minimint";
+  ref = "master";
   };
 
   cargoSha256 =  "sha256-1lZElXK9M895DURLID2KJdmCkJRTFNVC3meLFluO2WU=";
-
   meta = with lib; {
     description = "Federated Mint Prototype";
     homepage = "https://github.com/fedimint/minimint";
