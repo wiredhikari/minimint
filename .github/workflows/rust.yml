@@ -76,4 +76,4 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Nix Tests
-        run: nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}'
+        run: nix-build defauult.nix
