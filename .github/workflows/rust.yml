@@ -1,14 +1,70 @@
-name: 'Test'
-on:
-  pull_request:
-  push:
+on: [push, pull_request]
+
+name: CI
+
 jobs:
-  tests:
+  build_and_unit_test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v1
+      - name: Print toolchain version
+        uses: actions-rs/cargo@v1
+        with:
+          command: version
+      - name: Build everything
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --workspace
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace
+      - name: Build docs
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+      - name: Check docs for warnings
+        run: "[ $(cargo doc 2>&1 | grep -v 'output filename collision' | grep warning | wc -l) == 0 ]"
+      - name: Lint code with clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --workspace -- -D warnings
+      - name: Lint code with rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+  build_and_integration_test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          default: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Install bitcoin
+        run: curl https://bitcoincore.org/bin/bitcoin-core-22.0/bitcoin-22.0-x86_64-linux-gnu.tar.gz | sudo tar -xz -C /usr --strip-components=1
+      - name: Install c-lightning
+        run: curl -L https://github.com/ElementsProject/lightning/releases/download/v0.10.2/clightning-v0.10.2-Ubuntu-20.04.tar.xz | sudo tar -xJv -C /usr --strip-components=2
+      - name: Run Tests
+        run: scripts/integrationtest.sh
       - uses: actions/checkout@v2.4.0
       - uses: cachix/install-nix-action@v15
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - run: nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}'
-
+            nix_path: nixpkgs=channel:nixos-unstable
+      - name: Nix Tests
+        run: nix-build -E 'with import <nixpkgs> {}; callPackage ./default.nix {}'
