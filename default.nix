@@ -10,7 +10,7 @@ rustPlatform.buildRustPackage rec {
   ref = "master";
   };
 
-  cargoSha256 =  "sha256-YhyJ8CGck66fHMfADc+TV05mvufB8mMh/01wxvKNjLs=";
+  cargoSha256 =  "sha256-zvFvNCJHQgZaZPO4yXY+5pVNdQYgNx/WDbFX5nAr+Wo=";
   meta = with lib; {
     description = "Federated Mint Prototype";
     homepage = "https://github.com/fedimint/minimint";
