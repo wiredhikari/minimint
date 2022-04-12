@@ -2511,7 +2511,7 @@ checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
 [[package]]
 name = "secp256k1"
 version = "0.20.3"
-source = "git+https://github.com/elsirion/rust-secp256k1/?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d"
+source = "git+https://github.com/elsirion/rust-secp256k1.git?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d"
 dependencies = [
  "bitcoin_hashes",
  "rand 0.6.5",
@@ -2522,7 +2522,7 @@ dependencies = [
 [[package]]
 name = "secp256k1-sys"
 version = "0.4.1"
-source = "git+https://github.com/elsirion/rust-secp256k1/?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d"
+source = "git+https://github.com/elsirion/rust-secp256k1.git?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d"
 dependencies = [
  "cc",
 ]
