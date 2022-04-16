@@ -6,8 +6,8 @@ in naersk.buildPackage {
   pname = "minimint";
   version = "master";
   src = builtins.fetchGit {
-  url = "https://github.com/fedimint/minimint";
-  ref = "master";
+    url = "https://github.com/fedimint/minimint";
+    ref = "master";
   };
   gitAllRefs = true;
   gitSubmodules = true;
