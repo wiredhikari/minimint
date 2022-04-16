@@ -18,6 +18,7 @@ pkgs.mkShell {
     rust-analyzer
     bitcoin
     clightning
+    jq
   ];
 
   RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
