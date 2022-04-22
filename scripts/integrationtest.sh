@@ -30,9 +30,7 @@ CFG_DIR="$TMP_DIR/cfg"
 mkdir $CFG_DIR
 
 # Build all executables
-cd $SRC_DIR
-cargo build --release
-BIN_DIR="$SRC_DIR/target/release"
+
 
 # Generate federation, gateway and client config
 $BIN_DIR/configgen -- $CFG_DIR 4 4000 5000 1000 10000 100000 1000000 10000000
