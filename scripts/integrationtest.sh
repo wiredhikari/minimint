@@ -15,8 +15,6 @@ function cleanup {
 }
 trap cleanup EXIT
 
-# SRC_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-
 # Define temporary directories to not overwrite manually created config if run locally
 TMP_DIR="$(mktemp -d)"
 echo "Working in $TMP_DIR"
