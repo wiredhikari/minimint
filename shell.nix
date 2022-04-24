@@ -4,7 +4,7 @@
       (self: super: {
           rustc = super.fenix.latest.rustc;
           cargo  = super.fenix.latest.cargo;
-          rust-src = super.fenix.latest.rust-src;
+          # rust-src = super.fenix.latest.rust-src;
       }
         )
     ];
