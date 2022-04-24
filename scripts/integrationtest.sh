@@ -15,8 +15,6 @@ function cleanup {
 }
 trap cleanup EXIT
 
-SRC_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-
 # Define temporary directories to not overwrite manually created config if run locally
 TMP_DIR="$(mktemp -d)"
 echo "Working in $TMP_DIR"
@@ -29,14 +27,9 @@ mkdir $BTC_DIR
 CFG_DIR="$TMP_DIR/cfg"
 mkdir $CFG_DIR
 
-# Build all executables
-cd $SRC_DIR
-cargo build --release
-BIN_DIR="$SRC_DIR/target/release"
-
 # Generate federation, gateway and client config
-$BIN_DIR/configgen -- $CFG_DIR 4 4000 5000 1000 10000 100000 1000000 10000000
-$BIN_DIR/gw_configgen -- $CFG_DIR "$LN1_DIR/regtest/lightning-rpc"
+configgen -- $CFG_DIR 4 4000 5000 1000 10000 100000 1000000 10000000
+gw_configgen -- $CFG_DIR "$LN1_DIR/regtest/lightning-rpc"
 
 # Start bitcoind and wait for it to become ready
 bitcoind -regtest -fallbackfee=0.0004 -txindex -server -rpcuser=bitcoin -rpcpassword=bitcoin -datadir=$BTC_DIR &
@@ -79,9 +72,9 @@ mine_blocks 10
 cd $TMP_DIR
 for ((ID=0; ID<4; ID++)); do
   echo "starting mint $ID"
-  ($BIN_DIR/server $CFG_DIR/server-$ID.json 2>&1 | sed -e "s/^/mint $ID: /" ) &
+  (server $CFG_DIR/server-$ID.json 2>&1 | sed -e "s/^/mint $ID: /" ) &
 done
-MINT_CLIENT="$BIN_DIR/mint-client $CFG_DIR"
+MINT_CLIENT="mint-client $CFG_DIR"
 
 function await_block_sync() {
   EXPECTED_BLOCK_HEIGHT="$(( $($BTC_CLIENT getblockchaininfo | jq -r '.blocks') - $CONFIRMATION_TIME ))"
@@ -95,7 +88,7 @@ function await_block_sync() {
 await_block_sync
 
 # Start LN gateway
-$BIN_DIR/ln_gateway $CFG_DIR &
+ln_gateway $CFG_DIR &
 
 #### BEGIN TESTS ####
 # peg in
