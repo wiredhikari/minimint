@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> {
+{ pkgs ? import <nixpkgs> {}}:
 
 pkgs.mkShell {
   packages = with pkgs; [
@@ -9,7 +9,6 @@ pkgs.mkShell {
     clightning
     jq
   ];
-
 buildInputs = [
    (import ./default.nix )
    ];
