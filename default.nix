@@ -10,6 +10,6 @@ in naersk.buildPackage {
     ref = "master";
   };
   copyTarget = true; # copy the target directory to the build dir
-  # gitAllRefs = true;
+  gitAllRefs = true;
   gitSubmodules = true;
 }
