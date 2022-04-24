@@ -23,6 +23,6 @@ pkgs.mkShell {
 buildInputs = [
    (import ./default.nix )
    ];
-  RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
+  # RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
 }
 
