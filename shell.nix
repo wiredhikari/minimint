@@ -10,7 +10,9 @@
     ];
   }
 }:
-
+buildInputs = [
+  (import ./default.nix )
+];
 pkgs.mkShell {
   packages = with pkgs; [
     rustc
