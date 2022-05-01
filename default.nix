@@ -10,6 +10,9 @@ in naersk.buildPackage {
     ref = "master";
   };
   copyTarget = true; # copy the target directory to the build dir
-  gitAllRefs = true;
-  gitSubmodules = true;
+  buildInputs = [
+      pkgs.openssl
+      pkgs.pkg-config
+      pkgs.perl
+  ];
 }
