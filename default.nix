@@ -9,8 +9,7 @@ in naersk.buildPackage {
     url = "https://github.com/fedimint/minimint";
     ref = "master";
   };
-  gitAllRefs = true;
-  gitSubmodules = true;
+  copyTarget = true; # copy the target directory to the build dir
   buildInputs = [
       pkgs.openssl
       pkgs.pkg-config

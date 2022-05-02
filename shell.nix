@@ -24,8 +24,19 @@ pkgs.mkShell {
     jq
   ];
 
+buildInputs = [
+   (import ./default.nix )
+   ];
+
   RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
   OPENSSL_DIR = "${pkgs.openssl.dev}";
   OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
+
+shellHook =
+  ''
+    echo "Hello shell"
+    SRC_DIR="$( cd -- "$( dirname -- "$0" )/.." &> /dev/null && pwd )"
+    cp -r $out/target $SRC_DIR/target
+  '';
 }
 
