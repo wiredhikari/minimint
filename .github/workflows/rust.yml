@@ -84,7 +84,7 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Running nix-build
-        run: nix-build default.nix
+        run: nix-shell --command nix-build default.nix
     
 
 
