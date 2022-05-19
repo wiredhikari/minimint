@@ -1,11 +1,12 @@
+{ lib, fetchFromGitHub, rustPlatform }:
 let
     pkgs = import <nixpkgs> {};
     sources = import ./nix/sources.nix;
     naersk = pkgs.callPackage sources.naersk {};
-in naersk.buildPackage {
+rustPlatform.buildRustPackage rec {
   pname = "minimint";
   version = "master";
-  src = builtins.fetchGit {
+  src = fetchFromGitHub {
     url = "https://github.com/fedimint/minimint";
     ref = "master";
   };
@@ -17,7 +18,6 @@ in naersk.buildPackage {
   ];
   shellHook =
   ''
-    echo "Hello shell"
     SRC_DIR="$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
     cp -r $out/target $SRC_DIR/target
   '';
