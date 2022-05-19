@@ -5,10 +5,10 @@
         "homepage": "",
         "owner": "nix-community",
         "repo": "naersk",
-        "rev": "d626f73332a8f587b613b0afe7293dd0777be07d",
-        "sha256": "0djpv4wf0892z131yqzivyh6xsp5svybnz1z24zfaqa4wvwixvzc",
+        "rev": "94beb7a3edfeb3bcda65fa3f2ebc48ec6b40bf72",
+        "sha256": "065kn8mmpg47dgvg6l4klgy3z9mf4gbrwh25hmswzxc7i20ws70p",
         "type": "tarball",
-        "url": "https://github.com/nix-community/naersk/archive/d626f73332a8f587b613b0afe7293dd0777be07d.tar.gz",
+        "url": "https://github.com/nix-community/naersk/archive/94beb7a3edfeb3bcda65fa3f2ebc48ec6b40bf72.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -17,10 +17,10 @@
         "homepage": "https://github.com/nmattia/niv",
         "owner": "nmattia",
         "repo": "niv",
-        "rev": "df49d53b71ad5b6b5847b32e5254924d60703c46",
-        "sha256": "1j5p8mi1wi3pdcq0lfb881p97i232si07nb605dl92cjwnira88c",
+        "rev": "82e5cd1ad3c387863f0545d7591512e76ab0fc41",
+        "sha256": "090l219mzc0gi33i3psgph6s2pwsc8qy4lyrqjdj4qzkvmaj65a7",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/df49d53b71ad5b6b5847b32e5254924d60703c46.tar.gz",
+        "url": "https://github.com/nmattia/niv/archive/82e5cd1ad3c387863f0545d7591512e76ab0fc41.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
@@ -29,10 +29,22 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2f06b87f64bc06229e05045853e0876666e1b023",
-        "sha256": "1d7zg96xw4qsqh7c89pgha9wkq3rbi9as3k3d88jlxy2z0ns0cy2",
+        "rev": "8b3398bc7587ebb79f93dfeea1b8c574d3c6dba1",
+        "sha256": "1yaql4cwy4vd0sfd7gmcg5wpm2sn13ggkayvfq2l4kc1i4s57xcc",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/2f06b87f64bc06229e05045853e0876666e1b023.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/8b3398bc7587ebb79f93dfeea1b8c574d3c6dba1.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "rust-secp256k1-zkp": {
+        "branch": "master",
+        "description": null,
+        "homepage": null,
+        "owner": "fedimint",
+        "repo": "rust-secp256k1-zkp",
+        "rev": "ab7f6d8f5e74fd7bf5348d4fc3593bcc1dd532ad",
+        "sha256": "1d0r18dp5wnzdb5cv7nc14ksgvvxmcsy939793vjzqi3lwhdv798",
+        "type": "tarball",
+        "url": "https://github.com/fedimint/rust-secp256k1-zkp/archive/ab7f6d8f5e74fd7bf5348d4fc3593bcc1dd532ad.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
