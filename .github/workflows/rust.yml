@@ -88,6 +88,7 @@ jobs:
     name: Nix-Build Tests
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: Swatinem/rust-cache@v1
       - uses: cachix/install-nix-action@v15
         with:
