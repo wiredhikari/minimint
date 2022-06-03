@@ -1352,15 +1352,15 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RoundConsensusItem</span> {
-    <span class="ident">block_height</span>: <span class="ident">u32</span>, <span class="comment">// FIXME: use block hash instead, but needs more complicated verification logic</span>
-    <span class="ident">fee_rate</span>: <span class="ident">Feerate</span>,
-    <span class="ident">randomness</span>: [<span class="ident">u8</span>; <span class="number">32</span>],
+    <span class="kw">pub</span> <span class="ident">block_height</span>: <span class="ident">u32</span>, <span class="comment">// FIXME: use block hash instead, but needs more complicated verification logic</span>
+    <span class="kw">pub</span> <span class="ident">fee_rate</span>: <span class="ident">Feerate</span>,
+    <span class="kw">pub</span> <span class="ident">randomness</span>: [<span class="ident">u8</span>; <span class="number">32</span>],
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PegOutSignatureItem</span> {
-    <span class="ident">txid</span>: <span class="ident">Txid</span>,
-    <span class="ident">signature</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">secp256k1::Signature</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">txid</span>: <span class="ident">Txid</span>,
+    <span class="kw">pub</span> <span class="ident">signature</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">secp256k1::Signature</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Encodable</span>, <span class="ident">Decodable</span>)]</span>
@@ -1632,6 +1632,7 @@
         <span class="kw-2">mut</span> <span class="ident">batch</span>: <span class="ident">BatchTx</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">_rng</span>: <span class="kw">impl</span> <span class="ident">RngCore</span> <span class="op">+</span> <span class="ident">CryptoRng</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
     ) {
+        <span class="comment">// We only want to peg out if we have a real randomness beacon after the first consensus round</span>
         <span class="kw">let</span> <span class="ident">round_consensus</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_round_consensus</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">consensus</span>) =&gt; <span class="ident">consensus</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
@@ -1651,9 +1652,7 @@
             <span class="ident">urgency_threshold</span> <span class="op">=</span> <span class="ident">MIN_PEG_OUT_URGENCY</span>,
         );
 
-        <span class="comment">// We only want to peg out if we have a real randomness beacon after the first consensus round</span>
-        <span class="kw">let</span> <span class="ident">peg_out_ready</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_round_consensus</span>().<span class="ident">is_some</span>(); <span class="comment">// TODO: maybe destructure instead?</span>
-        <span class="kw">if</span> <span class="ident">urgency</span> <span class="op">&gt;</span> <span class="ident">MIN_PEG_OUT_URGENCY</span> <span class="op">&amp;&amp;</span> <span class="ident">peg_out_ready</span> {
+        <span class="kw">if</span> <span class="ident">urgency</span> <span class="op">&gt;</span> <span class="ident">MIN_PEG_OUT_URGENCY</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">psbt</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">create_peg_out_tx</span>(<span class="ident">pending_peg_outs</span>, <span class="ident">round_consensus</span>)
                 .<span class="kw">await</span>;
@@ -1737,19 +1736,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Wallet</span> {
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cfg</span>: <span class="ident">WalletConfig</span>, <span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Wallet</span>, <span class="ident">WalletError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">gen_cfg</span> <span class="op">=</span> <span class="ident">cfg</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">bitcoind_rpc_gen</span> <span class="op">=</span> <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bitcoind</span>(<span class="ident">cfg</span>: <span class="ident">WalletConfig</span>) -&gt; <span class="kw">impl</span> <span class="ident">Fn</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span><span class="op">&gt;</span> {
+        <span class="kw">move</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span><span class="op">&gt;</span> {
             <span class="ident">Box::new</span>(
                 <span class="ident">bitcoincore_rpc::Client::new</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">gen_cfg</span>.<span class="ident">btc_rpc_address</span>,
-                    <span class="ident">Auth::UserPass</span>(<span class="ident">gen_cfg</span>.<span class="ident">btc_rpc_user</span>.<span class="ident">clone</span>(), <span class="ident">gen_cfg</span>.<span class="ident">btc_rpc_pass</span>.<span class="ident">clone</span>()),
+                    <span class="kw-2">&amp;</span><span class="ident">cfg</span>.<span class="ident">btc_rpc_address</span>,
+                    <span class="ident">Auth::UserPass</span>(<span class="ident">cfg</span>.<span class="ident">btc_rpc_user</span>.<span class="ident">clone</span>(), <span class="ident">cfg</span>.<span class="ident">btc_rpc_pass</span>.<span class="ident">clone</span>()),
                 )
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not connect to bitcoind&quot;</span>),
             )
-        };
-
-        <span class="ident"><span class="self">Self</span>::new_with_bitcoind</span>(<span class="ident">cfg</span>, <span class="ident">db</span>, <span class="ident">bitcoind_rpc_gen</span>).<span class="kw">await</span>
+        }
     }
 
     <span class="comment">// TODO: work around bitcoind_gen being a closure, maybe make clonable?</span>
@@ -1761,7 +1757,7 @@
         <span class="kw">let</span> <span class="ident">broadcaster_bitcoind_rpc</span> <span class="op">=</span> <span class="ident">bitcoind_gen</span>();
         <span class="kw">let</span> <span class="ident">broadcaster_db</span> <span class="op">=</span> <span class="ident">db</span>.<span class="ident">clone</span>();
         <span class="ident">tokio::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-            <span class="ident">broadcast_pending_tx</span>(<span class="ident">broadcaster_db</span>, <span class="ident">broadcaster_bitcoind_rpc</span>).<span class="kw">await</span>;
+            <span class="ident">run_broadcast_pending_tx</span>(<span class="ident">broadcaster_db</span>, <span class="ident">broadcaster_bitcoind_rpc</span>).<span class="kw">await</span>;
         });
 
         <span class="kw">let</span> <span class="ident">bitcoind_rpc</span> <span class="op">=</span> <span class="ident">bitcoind_gen</span>();
@@ -1953,13 +1949,13 @@
 
         <span class="kw">if</span> <span class="ident">median_proposal</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">consensus_height</span> {
             <span class="macro">debug!</span>(<span class="string">&quot;Setting consensus block height to {}&quot;</span>, <span class="ident">median_proposal</span>);
-            <span class="self">self</span>.<span class="ident">sync_up_to_consensus_heigh</span>(<span class="ident">batch</span>, <span class="ident">median_proposal</span>)
+            <span class="self">self</span>.<span class="ident">sync_up_to_consensus_height</span>(<span class="ident">batch</span>, <span class="ident">median_proposal</span>)
                 .<span class="kw">await</span>;
         } <span class="kw">else</span> {
             <span class="macro">panic!</span>(
-                   <span class="string">&quot;Median proposed consensus block height shrunk from {} to {}, the federation is broken&quot;</span>,
-                   <span class="ident">consensus_height</span>, <span class="ident">median_proposal</span>
-               );
+                <span class="string">&quot;Median proposed consensus block height shrunk from {} to {}, the federation is broken&quot;</span>,
+                <span class="ident">consensus_height</span>, <span class="ident">median_proposal</span>
+            );
         }
 
         <span class="ident">median_proposal</span>
@@ -1973,7 +1969,7 @@
         <span class="self">self</span>.<span class="ident">current_round_consensus</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">rc</span><span class="op">|</span> <span class="ident">rc</span>.<span class="ident">block_height</span>)
     }
 
-    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_up_to_consensus_heigh</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">batch</span>: <span class="ident">BatchTx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">new_height</span>: <span class="ident">u32</span>) {
+    <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">sync_up_to_consensus_height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">batch</span>: <span class="ident">BatchTx</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">new_height</span>: <span class="ident">u32</span>) {
         <span class="kw">let</span> <span class="ident">old_height</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consensus_height</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="kw">if</span> <span class="ident">new_height</span> <span class="op">&lt;</span> <span class="ident">old_height</span> {
             <span class="macro">info!</span>(
@@ -2384,23 +2380,27 @@
 }
 
 <span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">level</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>, <span class="ident">skip_all</span>)]</span>
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">broadcast_pending_tx</span>(<span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>, <span class="ident">rpc</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span><span class="op">&gt;</span>) {
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_broadcast_pending_tx</span>(<span class="ident">db</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>, <span class="ident">rpc</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span><span class="op">&gt;</span>) {
     <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">pending_tx</span> <span class="op">=</span> <span class="ident">db</span>
-            .<span class="ident">find_by_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">PendingTransactionPrefixKey</span>)
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;DB error&quot;</span>);
-
-        <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">PendingTransaction</span> { <span class="ident">tx</span>, .. }) <span class="kw">in</span> <span class="ident">pending_tx</span> {
-            <span class="macro">debug!</span>(
-                <span class="ident">tx</span> <span class="op">=</span> <span class="op">%</span><span class="ident">tx</span>.<span class="ident">txid</span>(),
-                <span class="ident">weight</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">get_weight</span>(),
-                <span class="string">&quot;Broadcasting peg-out&quot;</span>,
-            );
-            <span class="macro">trace!</span>(<span class="ident">transaction</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">tx</span>);
-            <span class="ident">rpc</span>.<span class="ident">submit_transaction</span>(<span class="ident">tx</span>).<span class="kw">await</span>;
-        }
+        <span class="ident">broadcast_pending_tx</span>(<span class="kw-2">&amp;</span><span class="ident">db</span>, <span class="ident">rpc</span>.<span class="ident">as_ref</span>()).<span class="kw">await</span>;
         <span class="ident">tokio::time::sleep</span>(<span class="ident">Duration::from_secs</span>(<span class="number">10</span>)).<span class="kw">await</span>;
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">broadcast_pending_tx</span>(<span class="ident">db</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Database</span><span class="op">&gt;</span>, <span class="ident">rpc</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">BitcoindRpc</span>) {
+    <span class="kw">let</span> <span class="ident">pending_tx</span> <span class="op">=</span> <span class="ident">db</span>
+        .<span class="ident">find_by_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">PendingTransactionPrefixKey</span>)
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+        .<span class="ident">expect</span>(<span class="string">&quot;DB error&quot;</span>);
+
+    <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">PendingTransaction</span> { <span class="ident">tx</span>, .. }) <span class="kw">in</span> <span class="ident">pending_tx</span> {
+        <span class="macro">debug!</span>(
+            <span class="ident">tx</span> <span class="op">=</span> <span class="op">%</span><span class="ident">tx</span>.<span class="ident">txid</span>(),
+            <span class="ident">weight</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">get_weight</span>(),
+            <span class="string">&quot;Broadcasting peg-out&quot;</span>,
+        );
+        <span class="macro">trace!</span>(<span class="ident">transaction</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">tx</span>);
+        <span class="ident">rpc</span>.<span class="ident">submit_transaction</span>(<span class="ident">tx</span>).<span class="kw">await</span>;
     }
 }
 
@@ -2564,5 +2564,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimint_wallet" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (9257f5aad 2022-05-21)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimint_wallet" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (e71440575 2022-06-02)" ></div>
 </body></html>
