@@ -82,7 +82,6 @@ jobs:
         with:
           name: mycache
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Integration Tests with nix-shell
         run: nix-shell --command ./scripts/integrationtest.sh
   nix-build_test:
@@ -97,5 +96,4 @@ jobs:
         with:
           name: mycache
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
         run: nix-build default.nix
