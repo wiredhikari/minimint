@@ -88,7 +88,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - uses: cachix/cachix-action@v10
         with:
-          name: mycache
+          name: minimint
           signingKey: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - run: nix-build default.nix | cachix push minimint  
       - run: nix-shell --run "echo OK"
