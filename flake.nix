@@ -27,10 +27,10 @@
     
       # parentheses disambiguate each makeOverride call as a single list element
       (pkgs.rustBuilder.rustLib.makeOverride {
-          name = "rust-secp256k1-zkp";
+          name = "secp256k1";
           overrideAttrs = drv: {
             propagatedBuildInputs = drv.propagatedBuildInputs or [ ] ++ [
-              pkgs.rust-secp256k1-zkp.dev
+              pkgs.secp256k1
             ];
           };
       })
