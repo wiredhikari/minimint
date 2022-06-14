@@ -89,4 +89,4 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-21.11
       - name: Running nix-build
-        run: nix-build default.nix
+        run: nix-build 
