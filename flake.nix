@@ -53,7 +53,7 @@
 
         # nix run github:positron-solutions/minimint
         apps = rec {
-          # minimint = { type = "app"; program = "${defaultPackage}/bin/minimint"; };
+          minimint = { type = "app"; program = "${packages.default}/bin/minimint"; };
           default = minimint;
         };
       }
