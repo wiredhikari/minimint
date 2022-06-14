@@ -1,31 +1,60 @@
 {
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-21.11"; 
-    nixpkgs-unstable.url = "nixpkgs/nixos-unstable";     
     cargo2nix.url = "github:cargo2nix/cargo2nix/release-0.11.0";
     flake-utils.follows = "cargo2nix/flake-utils";
     nixpkgs.follows = "cargo2nix/nixpkgs";
   };
 
   outputs = inputs: with inputs;
+
+    # Build the output set for each default system and map system sets into
+    # attributes, resulting in paths such as:
+    # nix build .#packages.x86_64-linux.<name>
     flake-utils.lib.eachDefaultSystem (system:
+
+      # let-in expressions, very similar to Rust's let bindings.  These names
+      # are used to express the output but not themselves paths in the output.
       let
-        system = "x86_64-linux";
+
+        # create nixpkgs that contains rustBuilder from cargo2nix overlay
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [cargo2nix.overlays.default];
+          overlays = [ cargo2nix.overlay ];
         };
 
+        # create the workspace & dependencies package set
         rustPkgs = pkgs.rustBuilder.makePackageSet {
-          rustVersion = "1.61.0";
           packageFun = import ./Cargo.nix;
+          rustVersion = "1.61.0";
+        };
+
+        # The workspace defines a development shell with all of the dependencies
+        # and environment settings necessary for a regular `cargo build`
+        workspaceShell = rustPkgs.workspaceShell {
+          # This adds cargo2nix to the project shell via the cargo2nix flake
+          packages = [ cargo2nix.packages."${system}".cargo2nix ];
         };
 
       in rec {
+        # this is the output (recursive) set (expressed for each system)
+
+        devShells = {
+          default = workspaceShell; # nix develop
+        };
+
+        # the packages in `nix build .#packages.<system>.<name>`
         packages = {
-          # replace hello-world with your package name
-          defaultPackage.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.hello;
-          x86_64-linux.hello = nixpkgs.legacyPackages.x86_64-linux.hello;
+          # nix build .#minimint
+          # nix build .#packages.x86_64-linux.minimint
+          minimint = (rustPkgs.workspace.minimint {}).bin;
+          # nix build
+          default = packages.minimint;
+        };
+
+        # nix run github:positron-solutions/minimint
+        apps = rec {
+          minimint = { type = "app"; program = "${defaultPackage}/bin/minimint"; };
+          default = minimint;
         };
       }
     );
