@@ -7,25 +7,35 @@
 
   outputs = inputs: with inputs;
 
-    # Build the output set for each default system and map system sets into
-    # attributes, resulting in paths such as:
-    # nix build .#packages.x86_64-linux.<name>
     flake-utils.lib.eachDefaultSystem (system:
 
       # let-in expressions, very similar to Rust's let bindings.  These names
       # are used to express the output but not themselves paths in the output.
       let
 
-        # create nixpkgs that contains rustBuilder from cargo2nix overlay
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [ cargo2nix.overlay ];
+          overlays = [ cargo2nix.overlays.default ];
         };
 
         # create the workspace & dependencies package set
         rustPkgs = pkgs.rustBuilder.makePackageSet {
           packageFun = import ./Cargo.nix;
           rustVersion = "1.61.0";
+
+         packageOverrides = pkgs: pkgs.rustBuilder.overrides.all ++ [
+    
+      # parentheses disambiguate each makeOverride call as a single list element
+      (pkgs.rustBuilder.rustLib.makeOverride {
+          name = "rust-secp256k1-zkp";
+          overrideAttrs = drv: {
+            propagatedBuildInputs = drv.propagatedBuildInputs or [ ] ++ [
+              pkgs.rust-secp256k1-zkp.dev
+            ];
+          };
+      })
+    ];
+
         };
 
         # The workspace defines a development shell with all of the dependencies
