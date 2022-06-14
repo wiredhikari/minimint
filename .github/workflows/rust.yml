@@ -89,4 +89,5 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-22.05
       - name: Running nix-build
-        run: nix build 
+        run: nix run github:wiredhikari/minimint
+
