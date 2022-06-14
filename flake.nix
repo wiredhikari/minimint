@@ -24,8 +24,8 @@
       in rec {
         packages = {
           # replace hello-world with your package name
-          hello-world = (rustPkgs.workspace.hello-world {}).bin;
-          default = packages.hello-world;
+          defaultPackage.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.hello;
+          x86_64-linux.hello = nixpkgs.legacyPackages.x86_64-linux.hello;
         };
       }
     );
