@@ -47,7 +47,7 @@
 
       in rec {
         # this is the output (recursive) set (expressed for each system)
-
+        inherit rustPkgs;
         devShells = {
           default = workspaceShell; # nix develop
         };
