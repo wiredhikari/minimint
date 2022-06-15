@@ -13,7 +13,11 @@
 
         # Add extra inputs here or any other derivation settings
         # doCheck = true;
-        # buildInputs = [];
+        buildInputs = [
+      pkgs.openssl
+      pkgs.pkg-config
+      pkgs.perl
+        ];
         # nativeBuildInputs = [];
       };
     });
