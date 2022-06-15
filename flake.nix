@@ -61,7 +61,7 @@
           default = packages.minimint;
         };
 
-        # nix run github:positron-solutions/minimint
+        # nix run github:wiredhikari/minimint
         apps = rec {
           minimint = { type = "app"; program = "${packages.default}/bin/minimint"; };
           default = minimint;
