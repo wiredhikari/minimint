@@ -47,12 +47,6 @@
         });
       in
       {
-        packages.default = myCrate;
-        checks = {
-         inherit
-           myCrate
-           myCrateClippy
-           myCrateCoverage;
-        };
+        packages.default = minimint;
       });
 }
