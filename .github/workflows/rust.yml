@@ -43,7 +43,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check 
+          args: --all -- --check       
   build_wasm:
     name: Build (wasm32)
     runs-on: ubuntu-latest
@@ -66,7 +66,6 @@ jobs:
         with:
           command: build
           args: --target wasm32-unknown-unknown --package minimint-mint
-
   build_and_integration_test:
     name: Integration Tests
     runs-on: ubuntu-latest
