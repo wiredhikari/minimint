@@ -19,9 +19,9 @@
           src = ./.;
 
           buildInputs = with pkgs; [
-      openssl
-      pkg-config
-      perl
+            openssl
+            pkg-config
+            perl
           ];
 
           nativeBuildInputs = with pkgs; [
