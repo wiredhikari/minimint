@@ -1,0 +1,102 @@
+@nix { "action": "setPhase", "phase": "unpackPhase" }
+unpacking sources
+unpacking source archive /nix/store/vfnd16zblrfq5g73qv618pppi6lii332-am9gbvk527fx5yzji9f4388vrhmbx96j-source
+source root is am9gbvk527fx5yzji9f4388vrhmbx96j-source
+@nix { "action": "setPhase", "phase": "buildPhase" }
+building
+++ crate2nix generate -f ./Cargo.toml -o Cargo-generated.nix -h /nix/store/lzv57q4x0nvjf0m7f5m1d4s73w5v5lpj-minimint-crate2nix/crate-hashes.json
+Error: while retrieving metadata about ./Cargo.toml: `cargo metadata` exited with an error: error: could not load Cargo configuration
+
+Caused by:
+  could not parse TOML configuration in `/nix/store/lzv57q4x0nvjf0m7f5m1d4s73w5v5lpj-minimint-crate2nix/cargo/config`
+
+Caused by:
+  could not parse input as TOML
+
+Caused by:
+  TOML parse error at line 22, column 1
+     |
+  22 | [source."https://github.com/fedimint/rust-secp256k1/"]
+     | ^
+  Duplicate key `"https://github.com/fedimint/rust-secp256k1/"` in table `source`
+
+  While parsing a Table Header
+crate2nix failed.
+== cargo/config (BEGIN)
+    [source.crates-io]
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/bitcoin_hashes"]
+    git = "https://github.com/fedimint/bitcoin_hashes"
+    rev = "fb2be02f95fac4d21cc8822f4bf63166c7aa8d47"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/hbbft"]
+    git = "https://github.com/fedimint/hbbft"
+    rev = "aeb5d5a5ebec63428bbb509f98b41e1eeec68221"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/rust-secp256k1/"]
+    git = "https://github.com/fedimint/rust-secp256k1/"
+    rev = "37b9d77d98a497fddfb435df4f806b17276edb8d"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/rust-secp256k1/"]
+    git = "https://github.com/fedimint/rust-secp256k1/"
+    rev = "37b9d77d98a497fddfb435df4f806b17276edb8d"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/rust-secp256k1-zkp"]
+    git = "https://github.com/fedimint/rust-secp256k1-zkp"
+    rev = "1c4d6e843333947804df1be20d7fe9bd636a1555"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    [source."https://github.com/fedimint/rust-secp256k1-zkp"]
+    git = "https://github.com/fedimint/rust-secp256k1-zkp"
+    rev = "1c4d6e843333947804df1be20d7fe9bd636a1555"
+    branch = "master"
+    replace-with = "vendored-sources"
+    
+    
+    [source.vendored-sources]
+    directory = "/nix/store/qxk80zv93wzgra8ja3xxv9ajcwi2rmch-deps"
+
+== cargo/config (END)
+
+== crate-hashes.json (BEGIN)
+    {"bitcoin_hashes 0.10.0 (git+https://github.com/fedimint/bitcoin_hashes?branch=minimint#fb2be02f95fac4d21cc8822f4bf63166c7aa8d47)":"8686626119d713e5ba212c44f208aa3c9def9b28b0f45234fa195fec101c4e0e","hbbft 0.1.1 (git+https://github.com/fedimint/hbbft?branch=minimint#aeb5d5a5ebec63428bbb509f98b41e1eeec68221)":"1e5d3e6aebf2c803c479ebbbb1f23e6fc1d732a15dca0d9c8d282f4f232b9b5a","secp256k1 0.20.3 (git+https://github.com/fedimint/rust-secp256k1/?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d)":"d1d5006dd7c03d966d5341f2aee5b9020bb45ae5fdf89dcc725a0ab2b1801fde","secp256k1-sys 0.4.1 (git+https://github.com/fedimint/rust-secp256k1/?branch=minimint#37b9d77d98a497fddfb435df4f806b17276edb8d)":"d1d5006dd7c03d966d5341f2aee5b9020bb45ae5fdf89dcc725a0ab2b1801fde","secp256k1-zkp 0.4.0 (git+https://github.com/fedimint/rust-secp256k1-zkp?branch=minimint#1c4d6e843333947804df1be20d7fe9bd636a1555)":"d3e50f1127dfc25d4f9494f6e5c9a3975e055a09c4af7a0eade542f69e73a03f","secp256k1-zkp-sys 0.4.0 (git+https://github.com/fedimint/rust-secp256k1-zkp?branch=minimint#1c4d6e843333947804df1be20d7fe9bd636a1555)":"d3e50f1127dfc25d4f9494f6e5c9a3975e055a09c4af7a0eade542f69e73a03f"}
+== crate-hashes.json (END)
+
+== ls -la (BEGIN)
+total 200
+drwxr-xr-x 14 nixbld nixbld  4096 Jan  1  1970 .
+drwx------  3 nixbld nixbld  4096 Jun 18 08:26 ..
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 .github
+-rw-r--r--  1 nixbld nixbld    28 Jan  1  1970 .gitignore
+-rw-r--r--  1 nixbld nixbld 91807 Jan  1  1970 Cargo.lock
+-rw-r--r--  1 nixbld nixbld   472 Jan  1  1970 Cargo.toml
+-rw-r--r--  1 nixbld nixbld    73 Jan  1  1970 Dockerfile
+-rw-r--r--  1 nixbld nixbld   100 Jan  1  1970 Dockerfile.integrationtest
+-rw-r--r--  1 nixbld nixbld  1064 Jan  1  1970 LICENSE
+-rw-r--r--  1 nixbld nixbld 12911 Jan  1  1970 README.md
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 crypto
+-rw-r--r--  1 nixbld nixbld  1064 Jan  1  1970 default.nix
+drwxr-xr-x  2 nixbld nixbld  4096 Jan  1  1970 docs
+-rw-r--r--  1 nixbld nixbld  3384 Jan  1  1970 flake.lock
+-rw-r--r--  1 nixbld nixbld  2950 Jan  1  1970 flake.nix
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 integrationtests
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 ln-gateway
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 minimint
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 minimint-api
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 minimint-derive
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 mint-client
+drwxr-xr-x  5 nixbld nixbld  4096 Jan  1  1970 modules
+drwxr-xr-x  3 nixbld nixbld  4096 Jan  1  1970 nix
+drwxr-xr-x  2 nixbld nixbld  4096 Jan  1  1970 scripts
+-rw-r--r--  1 nixbld nixbld   286 Jan  1  1970 shell.nix
+== ls -la (END)
