@@ -1,23 +1,27 @@
+{ pkgs ? import <nixpkgs> {}}:
 let
-    pkgs = import <nixpkgs> {};
-    sources = import ./nix/sources.nix;
-    naersk = pkgs.callPackage sources.naersk {};
-in naersk.buildPackage {
-  pname = "minimint";
-  version = "master";
-  src = builtins.fetchGit {
-    url = "https://github.com/fedimint/minimint";
-    ref = "master";
-  };
-  copyTarget = true;
-  buildInputs = [
-      pkgs.openssl
-      pkgs.pkg-config
-      pkgs.perl
-  ];
-  shellHook =
-  ''
-    SRC_DIR="$( cd -- "$( dirname -- "''${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
-    cp -r $out/target $SRC_DIR/target
-  '';
-}
+  # Manage this with https://github.com/nmattia/niv
+  # or define { nixpkgs = ...; nixpkgs-mozilla = ...; }
+  # yourself.
+  sources = import ./nix/sources.nix;
+
+  rustChannelsOverlay = import "${sources.nixpkgs-mozilla}/rust-overlay.nix";
+  # Useful if you also want to provide that in a nix-shell since some rust tools depend
+  # on that.
+  rustChannelsSrcOverlay = import "${sources.nixpkgs-mozilla}/rust-src-overlay.nix";
+
+in import sources.nixpkgs {
+    overlays = [
+      rustChannelsOverlay
+      rustChannelsSrcOverlay
+      (self: super: {
+        # Replace "latest.rustChannels.stable" with the version of the rust tools that
+        # you would like. Look at the documentation of nixpkgs-mozilla for examples.
+        #
+        # NOTE: "rust" instead of "rustc" is not a typo: It will include more than needed
+        # but also the much needed "rust-std".
+        rustc = super.latest.rustChannels.stable.rust;
+        inherit (super.latest.rustChannels.stable) cargo rust rust-fmt rust-std clippy;
+      })
+    ];
+  }
