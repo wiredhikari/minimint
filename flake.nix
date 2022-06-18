@@ -20,7 +20,7 @@
 
   outputs = { self, nixpkgs, utils, rust-overlay, crate2nix, ... }:
     let
-      name = "minimint";
+      name = "my-app";
     in
     utils.lib.eachDefaultSystem
       (system:
