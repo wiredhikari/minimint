@@ -8,6 +8,7 @@ use tracing::trace;
 pub mod batch;
 pub mod mem_impl;
 pub mod sled_impl;
+mod rocksdb_impl;
 
 pub trait DatabaseKeyPrefixConst {
     const DB_PREFIX: u8;
