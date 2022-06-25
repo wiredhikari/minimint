@@ -31,7 +31,7 @@ impl Database for sled::Tree {
             .map(|bytes| bytes.to_vec()))
     }
 
-    fn raw_find_by_prefix(&self, key_prefix: &[u8]) -> PrefixIter {
+    fn raw_find_by_prefix(&self, key_prefix: &[u8]) -> PrefixIter<'_> {
         Box::new(self.scan_prefix(key_prefix).map(|res| {
             res.map(|(key_bytes, value_bytes)| (key_bytes.to_vec(), value_bytes.to_vec()))
                 .map_err(|e| DatabaseError::DbError(Box::new(e)))

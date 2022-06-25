@@ -32,12 +32,13 @@ impl Database for rocksdb::OptimisticTransactionDB {
             .map(|res| val)
     }
 
-    //Error: 'self' has an anonymous lifeitme `'_` but it needs to satisfy a `'static` lifetime requirement
-    fn raw_find_by_prefix(&self, key_prefix: &[u8]) -> PrefixIter {
-        Box::new(self.prefix_iterator(key_prefix)
-            .map_while(|res| res.0.starts_with(key_prefix).then(|| res))
-            .map(|(key_bytes, value_bytes)| (key_bytes.to_vec(), value_bytes.to_vec()))
-            .map(Ok::<(Vec<u8>, Vec<u8>), DatabaseError>)
+    fn raw_find_by_prefix(&self, key_prefix: &[u8]) -> PrefixIter<'_> {
+        let prefix = key_prefix.to_vec();
+        Box::new(
+            self.prefix_iterator(prefix.clone())
+                .map_while(move |res| res.0.starts_with(&prefix).then(|| res))
+                .map(|(key_bytes, value_bytes)| (key_bytes.to_vec(), value_bytes.to_vec()))
+                .map(Ok),
         )
     }
 
