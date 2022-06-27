@@ -93,7 +93,10 @@ mod tests {
         use rocksdb::{DBAccess, OptimisticTransactionDB, Options, SingleThreaded, Transaction, WriteBatch, WriteBatchWithTransaction};
         use crate::db::Database;
 
-        let path = tempdir::TempDir::new("fcb-rocksdb-test").unwrap();
+        let path = tempfile::Builder::new()
+            .prefix("fcb-rocksdb-test")
+            .tempdir()
+            .unwrap();
         let mut opts = Options::default();
         opts.create_if_missing(true);
 
