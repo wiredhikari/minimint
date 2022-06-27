@@ -96,7 +96,7 @@ mod tests {
         let mut opts = Options::default();
         opts.create_if_missing(true);
 
-        let mut db: OptimisticTransactionDB<SingleThreaded> =
+        let db: OptimisticTransactionDB<SingleThreaded> =
             OptimisticTransactionDB::open_default(path).unwrap();
 
         crate::db::tests::test_db_impl(Arc::new(db));
