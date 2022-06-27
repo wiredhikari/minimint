@@ -1,9 +1,5 @@
-use std::convert::Infallible;
-use std::sync::Arc;
-use rocksdb::Error;
-use sled::transaction::TransactionError;
 use super::batch::{BatchItem, DbBatch};
-use super::{Database, DatabaseError, DecodingError};
+use super::{Database, DatabaseError};
 use crate::db::PrefixIter;
 use tracing::{error, trace};
 
@@ -16,7 +12,7 @@ impl Database for rocksdb::OptimisticTransactionDB {
         let val = self.get(key).unwrap();
         self.put(key, value)
             .map_err(|e| DatabaseError::DbError(Box::new(e)))
-            .map(|res| val)
+            .map(|_res| val)
     }
 
     fn raw_get_value(&self, key: &[u8]) -> Result<Option<Vec<u8>>, DatabaseError> {
@@ -29,7 +25,7 @@ impl Database for rocksdb::OptimisticTransactionDB {
         let val = self.get(key).unwrap();
         self.delete(key)
             .map_err(|e| DatabaseError::DbError(Box::new(e)))
-            .map(|res| val)
+            .map(|_res| val)
     }
 
     fn raw_find_by_prefix(&self, key_prefix: &[u8]) -> PrefixIter<'_> {
@@ -44,17 +40,17 @@ impl Database for rocksdb::OptimisticTransactionDB {
 
     fn raw_apply_batch(&self, batch: DbBatch) -> Result<(), DatabaseError> {
         let batch: Vec<_> = batch.into();
-        let mut tx = self.transaction();
+        let tx = self.transaction();
 
         for change in batch.iter() {
             match change {
                 BatchItem::InsertNewElement(element) => {
                     if tx.get(element.key.to_bytes()).unwrap().is_some() {
-                        tx.put(element.key.to_bytes(), element.value.to_bytes());
+                        tx.put(element.key.to_bytes(), element.value.to_bytes())?;
                         error!("Database replaced element! This should not happen!");
                         trace!("Problematic key: {:?}", element.key);
                     } else {
-                        tx.put(element.key.to_bytes(), element.value.to_bytes());
+                        tx.put(element.key.to_bytes(), element.value.to_bytes())?;
                     }
                 }
                 BatchItem::InsertElement(element) => {
@@ -62,21 +58,20 @@ impl Database for rocksdb::OptimisticTransactionDB {
                 }
                 BatchItem::DeleteElement(key) => {
                     if tx.get(key.to_bytes()).unwrap().is_none(){
-                        tx.delete(key.to_bytes());
+                        tx.delete(key.to_bytes())?;
                         error!("Database deleted absent element! This should not happen!");
                         trace!("Problematic key: {:?}", key);
                     } else {
-                        tx.delete(key.to_bytes());
+                        tx.delete(key.to_bytes())?;
                     }
                 }
                 BatchItem::MaybeDeleteElement(key) => {
                     tx.delete(key.to_bytes())?;
                 }
             }
-            Ok(())
         }
-        tx.commit().map_err(|e| DatabaseError::DbError(Box::new(e)));
-        return Ok(())
+        tx.commit().map_err(|e| DatabaseError::DbError(Box::new(e)))?;
+        Ok(())
     }
 }
 
@@ -88,11 +83,11 @@ impl From<rocksdb::Error> for DatabaseError {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     #[test_log::test]
     fn test_basic_rw() {
-        use std::sync::Arc;
-        use rocksdb::{DBAccess, OptimisticTransactionDB, Options, SingleThreaded, Transaction, WriteBatch, WriteBatchWithTransaction};
-        use crate::db::Database;
+        use rocksdb::{OptimisticTransactionDB, Options, SingleThreaded};
 
         let path = tempfile::Builder::new()
             .prefix("fcb-rocksdb-test")
@@ -104,6 +99,6 @@ mod tests {
         let mut db: OptimisticTransactionDB<SingleThreaded> =
             OptimisticTransactionDB::open_default(path).unwrap();
 
-
+        crate::db::tests::test_db_impl(Arc::new(db));
     }
 }
