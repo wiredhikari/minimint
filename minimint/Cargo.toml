@@ -28,6 +28,7 @@ opentelemetry = { version = "0.17.0", optional = true }
 opentelemetry-jaeger = { version = "0.16.0", optional = true }
 rand = "0.6.5"
 rayon = "1.5.0"
+rocksdb = { git = "https://github.com/yiyuanliu/rust-rocksdb", branch = "transaction"}
 secp256k1-zkp = { git = "https://github.com/fedimint/rust-secp256k1-zkp", branch = "minimint", features = [ "global-context", "bitcoin_hashes" ] }
 serde = { version = "1.0.118", features = [ "derive" ] }
 serde_json = "1.0.61"
