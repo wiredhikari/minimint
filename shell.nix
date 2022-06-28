@@ -12,6 +12,7 @@ pkgs.mkShell {
     clightning
     jq
     procps
+    clang
   ];
   OPENSSL_DIR = "${pkgs.openssl.dev}";
   OPENSSL_LIB_DIR = "${pkgs.openssl.out}/lib";
