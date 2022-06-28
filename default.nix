@@ -12,6 +12,7 @@ in naersk.buildPackage {
       pkgs.openssl
       pkgs.pkg-config
       pkgs.perl
+      pkgs.clang
   ];
   shellHook =
   ''
