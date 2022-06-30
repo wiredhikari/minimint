@@ -133,7 +133,7 @@
 <span class="kw">use</span> <span class="ident">bitcoin</span>::{<span class="ident">BlockHash</span>, <span class="ident">OutPoint</span>, <span class="ident">Txid</span>};
 <span class="kw">use</span> <span class="ident">minimint_api::db::DatabaseKeyPrefixConst</span>;
 <span class="kw">use</span> <span class="ident">minimint_api::encoding</span>::{<span class="ident">Decodable</span>, <span class="ident">Encodable</span>};
-<span class="kw">use</span> <span class="ident">secp256k1::Signature</span>;
+<span class="kw">use</span> <span class="ident">secp256k1::ecdsa::Signature</span>;
 
 <span class="kw">const</span> <span class="ident">DB_PREFIX_BLOCK_HASH</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x30</span>;
 <span class="kw">const</span> <span class="ident">DB_PREFIX_UTXO</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0x31</span>;
@@ -251,5 +251,5 @@
     <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Signature</span><span class="op">&gt;</span>;
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimint_wallet" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (2f3ddd9f5 2022-06-27)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="minimint_wallet" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (ddcbba036 2022-06-29)" ></div>
 </body></html>
