@@ -1,0 +1,81 @@
+{
+  "api_endpoints": [
+    "ws://127.0.0.1:5000"
+  ],
+  "mint": {
+    "tbs_pks": {
+      "1": "94452ed5c9375d4fe745a76bedfdd985eb6a7bfe678eac65351e161e552b77a97dba06030cc79f26cc56bb8d83b254640592c56f977105a334fefd5164511360973c9113a6e4b026cfa28092adc7cd76a81179c9dfcd7553fae91229e9f194b8",
+      "10": "ac3b3bf41ad967311d6c41678504b935524350622b190c4b0277e56ab410a235e07363fedbd0022b786ae086818efffa04698b2d4c70daf4bd39d2eec8506a02dc429b04ddbf92c683a7036dc91c6f83111a7f0ca3ca69bc546c944d8ad8571a",
+      "100": "83cfb495f48e4b0e99012f0475d8a9afecd4ad11bf76eae7401983bb25de3e0541298acdb0b5951f7363625c667422530fc1457d3f2988a1c8644e0f6ea3f7af2381a47fe9c87d55183aa4601303009baaa0723f89537b11dc50e5db09a3e579",
+      "1000": "a04c4ba83bcfb6dc0202e94ea3fa6fcbe77cfd67b3704e735008bd3fa75f0e08bf64f8e00d15f9e91a299f06c00c59ed03cf43cbe7c47f14d85b983515603994bf753b4336be04d11da40fd4e16f460e1aedc98d2bbe1bc0eeb5bfd1e89f68c4",
+      "10000": "b722ea3ce908a86a0cb5b635604eea5d1c73fc201ee2efe5fd9d17f7d41fa48e52e5eae0a1fb8e3d0b5b0be14dc6c7e412c4aeb3d7ee5e6c6b18294565b2a8f6cf2dd8f7fea79741bbaa818b354f999461bdb190f47e05476121769d08257760",
+      "100000": "865fea94ecc8f99ecf85f936a6b88da0b81b9d927af0f1f36543793f4197b4acf737405d1a2d39e3391748b1884947d709de27ad86295ec8e161cd45958aa10f9a90db8e679231441e25a17f5659e7a7cf4435eb0a0a1df9146a560b5adfdab5",
+      "1000000": "a4a80def13e7cbb584494af3efc180e112fa2bf9c5412f9b082b95c719cc3d5f2828426175233e9ee104f8368f91a0d10e3a9c74a1721e9ad6ceffd21370c35ed6a939e3b3da5a5e4012bcb4b9a946b3b510293101ea82b086e1325db52f04b2"
+    }
+  },
+  "wallet": {
+    "peg_in_descriptor": "wsh(sortedmulti(1,03dd3547c8bab23a1109857bb411fa9fce7b9ad712160fd46145a5d16c24e29b00))#qrlvggtm",
+    "network": "regtest"
+  },
+  "ln": {
+    "threshold_pub_key": [
+      132,
+      227,
+      9,
+      236,
+      0,
+      30,
+      223,
+      74,
+      0,
+      7,
+      214,
+      158,
+      24,
+      193,
+      22,
+      132,
+      184,
+      113,
+      248,
+      252,
+      148,
+      70,
+      162,
+      22,
+      63,
+      58,
+      144,
+      31,
+      85,
+      131,
+      207,
+      28,
+      101,
+      198,
+      89,
+      149,
+      129,
+      168,
+      215,
+      82,
+      40,
+      122,
+      175,
+      252,
+      6,
+      40,
+      185,
+      211
+    ]
+  },
+  "fee_consensus": {
+    "fee_coin_spend_abs": 0,
+    "fee_peg_in_abs": 0,
+    "fee_coin_issuance_abs": 0,
+    "fee_peg_out_abs": 0,
+    "fee_contract_input": 0,
+    "fee_contract_output": 0
+  },
+  "max_evil": 0
+}

@@ -11,7 +11,6 @@ echo "Setting up env variables in $FM_TMP_DIR"
 # Builds the rust executables and sets environment variables
 SRC_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 cd $SRC_DIR
-cargo build --release
 
 # Define temporary directories to not overwrite manually created config if run locally
 export FM_TEST_DIR=$FM_TMP_DIR
@@ -27,16 +26,16 @@ mkdir -p $FM_BTC_DIR
 mkdir -p $FM_CFG_DIR
 
 # Generate federation client config
-$FM_BIN_DIR/configgen -- $FM_CFG_DIR $FM_FED_SIZE 4000 5000 1000 10000 100000 1000000 10000000
+configgen -- $FM_CFG_DIR $FM_FED_SIZE 4000 5000 1000 10000 100000 1000000 10000000
 
 # Define clients
 export FM_LN1="lightning-cli --network regtest --lightning-dir=$FM_LN1_DIR"
 export FM_LN2="lightning-cli --network regtest --lightning-dir=$FM_LN2_DIR"
-export FM_BTC_CLIENT="bitcoin-cli -regtest -rpcuser=bitcoin -rpcpassword=bitcoin"
-export FM_MINT_CLIENT="$FM_BIN_DIR/mint-client-cli $FM_CFG_DIR"
-export FM_MINT_RPC_CLIENT="$FM_BIN_DIR/mint-rpc-client"
-export FM_CLIENTD="$FM_BIN_DIR/clientd"
-export FM_CLIENTD_CLI="$FM_BIN_DIR/clientd-cli"
+export FM_BTC_CLIENT="bitcoin-cli -rpcport=8332 -regtest  -rpcuser=privileged -rpcpassword=bu0joXYt12eyTe7JBSSH"
+export FM_MINT_CLIENT="mint-client-cli $FM_CFG_DIR"
+export FM_MINT_RPC_CLIENT="mint-rpc-client"
+export FM_CLIENTD="clientd"
+export FM_CLIENTD_CLI="clientd-cli"
 
 # Alias clients
 alias ln1="\$FM_LN1"

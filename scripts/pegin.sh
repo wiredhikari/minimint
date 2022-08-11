@@ -4,6 +4,8 @@ echo "Run with 'source ./scripts/pegin.sh [amount] [use_gateway]"
 
 set -euxo pipefail
 source ./scripts/lib.sh
+source ./scripts/build.sh 1
+
 
 # Let's define some shortcuts for bitcoind and the mint client
 POLL_INTERVAL=1
@@ -36,4 +38,4 @@ if [ "$USE_GATEWAY" == 1 ]; then $FM_LN1 gw-deposit "$TXOUT_PROOF" "$TRANSACTION
 
 # Since the process is asynchronous have to come back to fetch the result later. We choose to do this right away and
 # just block till we get our tokens.
-$FM_MINT_CLIENT fetch
+mint-client-cli fetch
